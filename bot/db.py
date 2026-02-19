@@ -433,8 +433,9 @@ class Database:
             row = await cur.fetchone()
             return bool(row)
 
-    async def upsert_user(self, tg_id: int, username: str) -> None:
+        async def upsert_user(self, tg_id: int, username: str) -> None:
         async with aiosqlite.connect(self.path) as db:
+            # Проверяем существование
             cur = await db.execute("SELECT tg_id FROM users WHERE tg_id=?", (tg_id,))
             row = await cur.fetchone()
             if row:
