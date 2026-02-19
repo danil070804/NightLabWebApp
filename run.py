@@ -1,59 +1,40 @@
 #!/usr/bin/env python3
 """
-Универсальный скрипт запуска NightLab Bot
+Универсальный скрипт запуска NightLab Bot + WebApp API
 """
 import sys
-import argparse
 import os
+import threading
+import time
 
-def run_bot():
-    """Запуск Telegram бота"""
-    from bot.main import main
-    main()
+# Добавляем путь к боту
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def run_api():
     """Запуск API сервера"""
     import uvicorn
+    from bot.api.webapp_api import app
     port = int(os.environ.get('PORT', 8000))
-    uvicorn.run("bot.api.webapp_api:app", host="0.0.0.0", port=port)
+    print(f"🚀 API запускается на порту {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="warning")
 
-def run_both():
-    """Запуск бота и API одновременно"""
-    import threading
-    
-    def start_api():
-        import uvicorn
-        port = int(os.environ.get('PORT', 8000))
-        uvicorn.run("bot.api.webapp_api:app", host="0.0.0.0", port=port)
-    
-    # Запускаем API в отдельном потоке
-    api_thread = threading.Thread(target=start_api, daemon=True)
-    api_thread.start()
-    
-    # Запускаем бота
+def run_bot():
+    """Запуск Telegram бота"""
+    print("🤖 Бот запускается...")
     from bot.main import main
     main()
 
-def main():
-    parser = argparse.ArgumentParser(description="NightLab Bot Launcher")
-    parser.add_argument(
-        "mode",
-        choices=["bot", "api", "both"],
-        default="bot",
-        nargs="?",
-        help="Что запустить: bot (только бот), api (только API), both (оба)"
-    )
-    
-    args = parser.parse_args()
-    
-    print(f"🚀 Запуск NightLab Bot в режиме: {args.mode}")
-    
-    if args.mode == "bot":
-        run_bot()
-    elif args.mode == "api":
-        run_api()
-    elif args.mode == "both":
-        run_both()
-
 if __name__ == "__main__":
-    main()
+    print("="*50)
+    print("🚀 NightLab Bot + WebApp API")
+    print("="*50)
+    
+    # Запускаем API в отдельном потоке
+    api_thread = threading.Thread(target=run_api, daemon=True)
+    api_thread.start()
+    
+    # Даем API время на старт
+    time.sleep(2)
+    
+    # Запускаем бота в основном потоке
+    run_bot()
