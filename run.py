@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-"""
-Универсальный скрипт запуска NightLab Bot + WebApp API
-"""
 import sys
 import os
 import threading
 import time
 
-# Добавляем путь к боту
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def run_api():
@@ -15,12 +11,12 @@ def run_api():
     import uvicorn
     from bot.api.webapp_api import app
     port = int(os.environ.get('PORT', 8000))
-    print(f"🚀 API запускается на порту {port}...")
+    print(f"🚀 API on port {port}")
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="warning")
 
 def run_bot():
     """Запуск Telegram бота"""
-    print("🤖 Бот запускается...")
+    print("🤖 Bot starting...")
     from bot.main import main
     main()
 
@@ -33,8 +29,8 @@ if __name__ == "__main__":
     api_thread = threading.Thread(target=run_api, daemon=True)
     api_thread.start()
     
-    # Даем API время на старт
-    time.sleep(2)
+    # Даем API время стартовать
+    time.sleep(3)
     
-    # Запускаем бота в основном потоке
+    # Запускаем бота (основной поток)
     run_bot()
