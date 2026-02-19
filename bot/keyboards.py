@@ -19,7 +19,7 @@ async def main_menu(db=None) -> ReplyKeyboardMarkup:
     keyboard.extend([
         [KeyboardButton(text="💳 Получить реквизиты"), KeyboardButton(text="📄 Мои заявки")],
         [KeyboardButton(text="👥 Комьюнити"), KeyboardButton(text="🆘 Поддержка"),
-         KeyboardKeyboardButton(text="🤝 Работать с нами")],
+         KeyboardButton(text="🤝 Работать с нами")],
     ])
 
     return ReplyKeyboardMarkup(
