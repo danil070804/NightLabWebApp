@@ -25,7 +25,6 @@ async def _expire_loop(bot: Bot, db: Database, logger: logging.Logger):
             for app_id in expired_ids:
                 app = await db.get_application(app_id)
                 if app:
-                    # Отправляем уведомление пользователю
                     await notif_manager.notify_app_expired(app_id, app["user_tg_id"])
                     
                     try:
@@ -43,12 +42,8 @@ async def _expire_loop(bot: Bot, db: Database, logger: logging.Logger):
 
 async def _notification_loop(bot: Bot, db: Database, logger: logging.Logger):
     """Цикл обработки уведомлений"""
-    notif_manager = NotificationManager(bot, db)
-    
     while True:
         try:
-            # Здесь можно добавить логику для периодических уведомлений
-            # Например, напоминания о неоплаченных заявках
             pass
         except Exception as e:
             logger.exception("notification loop error: %s", e)
@@ -75,7 +70,6 @@ async def _run():
         await db.upsert_country("Украина")
         default_country_id = (await db.list_countries(active_only=False))[0][0]
 
-        # seed banks if empty and link to default country
         banks = await db.list_banks(active_only=False)
         if not banks:
             await db.upsert_bank("Моно Банк", "Карта: ....\nФИО: ....\nНазначение: ....", default_country_id)
