@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>NightLab - Личный кабинет</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Floating Navigation -->
+        <nav class="nav-bar" id="nav-bar">
+            <button class="nav-item active" data-page="home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">Главная</span>
+            </button>
+            <button class="nav-item" data-page="apps">
+                <span class="nav-icon">📄</span>
+                <span class="nav-label">Заявки</span>
+                <span class="nav-badge" id="apps-badge" style="display:none">0</span>
+            </button>
+            <button class="nav-item" data-page="create">
+                <span class="nav-icon nav-create">➕</span>
+                <span class="nav-label">Создать</span>
+            </button>
+            <button class="nav-item" data-page="notifications">
+                <span class="nav-icon">🔔</span>
+                <span class="nav-label">Уведомления</span>
+                <span class="nav-badge" id="notif-badge" style="display:none">0</span>
+            </button>
+            <button class="nav-item" data-page="profile">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Профиль</span>
+            </button>
+        </nav>
+
+        <!-- Home Page -->
+        <div class="page active" id="page-home">
+            <div class="header">
+                <div class="logo-container">
+                    <div class="logo">🌙</div>
+                    <div class="logo-glow"></div>
+                </div>
+                <h1>NightLab</h1>
+                <p class="subtitle">Ваш личный кабинет</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card animated">
+                    <span class="stat-icon">📊</span>
+                    <div class="stat-value" id="stat-total-apps">0</div>
+                    <div class="stat-label">Всего заявок</div>
+                </div>
+                <div class="stat-card animated">
+                    <span class="stat-icon">💰</span>
+                    <div class="stat-value" id="stat-turnover">₴0</div>
+                    <div class="stat-label">Оборот</div>
+                </div>
+                <div class="stat-card animated">
+                    <span class="stat-icon">👥</span>
+                    <div class="stat-value" id="stat-users">0</div>
+                    <div class="stat-label">Пользователей</div>
+                </div>
+                <div class="stat-card animated">
+                    <span class="stat-icon">📈</span>
+                    <div class="stat-value" id="stat-today">0</div>
+                    <div class="stat-label">Заявок сегодня</div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>Быстрые действия</h3>
+                <div class="actions-grid">
+                    <button class="action-card" onclick="navigateTo('create')">
+                        <div class="action-icon purple">💳</div>
+                        <span>Получить реквизиты</span>
+                    </button>
+                    <button class="action-card" onclick="navigateTo('apps')">
+                        <div class="action-icon green">📄</div>
+                        <span>Мои заявки</span>
+                    </button>
+                    <button class="action-card" onclick="navigateTo('profile')">
+                        <div class="action-icon orange">👤</div>
+                        <span>Профиль</span>
+                    </button>
+                    <button class="action-card" onclick="openSupport()">
+                        <div class="action-icon blue">🆘</div>
+                        <span>Поддержка</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Create Application Page -->
+        <div class="page" id="page-create">
+            <div class="page-header">
+                <h2>Новая заявка</h2>
+                <p>Заполните данные для получения реквизитов</p>
+            </div>
+
+            <div class="form-container">
+                <!-- Step 1: Country -->
+                <div class="form-step active" id="step-1">
+                    <div class="step-indicator">Шаг 1 из 3</div>
+                    <h3>Выберите страну</h3>
+                    <div class="options-grid" id="countries-list">
+                        <div class="loading-spinner">Загрузка...</div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Bank -->
+                <div class="form-step" id="step-2">
+                    <div class="step-indicator">Шаг 2 из 3</div>
+                    <h3>Выберите банк</h3>
+                    <div class="options-grid" id="banks-list">
+                        <div class="loading-spinner">Выберите страну</div>
+                    </div>
+                    <button class="btn-secondary" onclick="goToStep(1)">← Назад</button>
+                </div>
+
+                <!-- Step 3: Amount -->
+                <div class="form-step" id="step-3">
+                    <div class="step-indicator">Шаг 3 из 3</div>
+                    <h3>Введите сумму</h3>
+                    <div class="input-group">
+                        <label>Сумма в UAH</label>
+                        <input type="number" id="amount-input" placeholder="1000" min="1" step="0.01">
+                        <span class="input-hint">Минимальная сумма: 1 грн</span>
+                    </div>
+                    <div class="selected-info" id="selected-info"></div>
+                    <button class="btn-primary" onclick="submitApplication()">
+                        <span class="btn-text">Создать заявку</span>
+                        <span class="btn-loader" style="display:none"></span>
+                    </button>
+                    <button class="btn-secondary" onclick="goToStep(2)">← Назад</button>
+                </div>
+
+                <!-- Success -->
+                <div class="form-step" id="step-success">
+                    <div class="success-animation">
+                        <div class="success-checkmark">✓</div>
+                    </div>
+                    <h3>Заявка создана!</h3>
+                    <div class="success-details" id="success-details"></div>
+                    <button class="btn-primary" onclick="navigateTo('apps')">Перейти к заявкам</button>
+                    <button class="btn-secondary" onclick="resetForm()">Создать ещё</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications Page -->
+        <div class="page" id="page-apps">
+            <div class="page-header">
+                <h2>Мои заявки</h2>
+                <p>История всех операций</p>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">Все</button>
+                <button class="filter-btn" data-filter="WAITING_MERCHANT">В обработке</button>
+                <button class="filter-btn" data-filter="WAITING_PAYMENT">Оплата</button>
+                <button class="filter-btn" data-filter="CONFIRMED">Завершённые</button>
+            </div>
+
+            <div class="applications-list" id="applications-list">
+                <div class="loading-spinner">Загрузка заявок...</div>
+            </div>
+
+            <div class="load-more" id="load-more" style="display:none">
+                <button class="btn-secondary" onclick="loadMoreApps()">Загрузить ещё</button>
+            </div>
+        </div>
+
+        <!-- Notifications Page -->
+        <div class="page" id="page-notifications">
+            <div class="page-header">
+                <h2>Уведомления</h2>
+                <p>Последние события</p>
+            </div>
+
+            <div class="notifications-list" id="notifications-list">
+                <div class="loading-spinner">Загрузка уведомлений...</div>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div class="page" id="page-profile">
+            <div class="page-header">
+                <h2>Профиль</h2>
+                <p>Ваши данные и статистика</p>
+            </div>
+
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <span id="profile-avatar-text">👤</span>
+                </div>
+                <div class="profile-info">
+                    <h3 id="profile-username">@username</h3>
+                    <span class="profile-role" id="profile-role">USER</span>
+                </div>
+            </div>
+
+            <div class="balance-card">
+                <div class="balance-label">Ваш баланс</div>
+                <div class="balance-value" id="profile-balance">₴0.00</div>
+            </div>
+
+            <div class="stats-section">
+                <h4>Ваша статистика</h4>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <span class="stat-number" id="user-stat-apps">0</span>
+                        <span class="stat-desc">Всего заявок</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="user-stat-confirmed">0</span>
+                        <span class="stat-desc">Подтверждено</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="user-stat-spent">₴0</span>
+                        <span class="stat-desc">Потрачено</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="referral-section">
+                <h4>Реферальная программа</h4>
+                <p>Приглашайте друзей и получайте бонусы</p>
+                <div class="referral-stats">
+                    <span id="referral-count">0 приглашённых</span>
+                </div>
+                <div class="referral-link-box">
+                    <input type="text" id="referral-link" readonly>
+                    <button class="btn-copy" onclick="copyReferralLink()">📋</button>
+                </div>
+                <button class="btn-share" onclick="shareReferral()">Поделиться ссылкой</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Details Modal -->
+    <div class="modal" id="app-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Заявка #123</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
