@@ -62,11 +62,23 @@ if os.path.exists(webapp_path):
 
 @app.get("/")
 async def serve_webapp():
-    """Отдаем index.html на корневом пути"""
-    webapp_index = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "webapp", "index.html")
+    """Отдаем index.html"""
+    # Путь относительно файла webapp_api.py
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Поднимаемся из bot/api/ в корень
+    root_dir = os.path.dirname(os.path.dirname(current_dir))
+    webapp_index = os.path.join(root_dir, "webapp", "index.html")
+    
     if os.path.exists(webapp_index):
         return FileResponse(webapp_index)
-    return {"status": "ok", "service": "NightLab WebApp API", "message": "WebApp not configured. Use /api/ endpoints."}
+    else:
+        # Дебаг - покажем что есть в папке
+        return {
+            "status": "error",
+            "message": "index.html not found",
+            "looked_in": webapp_index,
+            "files_in_root": os.listdir(root_dir) if os.path.exists(root_dir) else "root not found"
+        }
     
 
 # ============ Модели Pydantic ============
