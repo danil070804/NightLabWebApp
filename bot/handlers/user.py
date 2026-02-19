@@ -58,17 +58,22 @@ async def community(message: Message, config, db):
     rules_url = await db.get_setting("rules_url") or getattr(config, "rules_url", channel_url)
     webapp_url = await db.get_setting("webapp_url")
 
-    buttons = [
+    # ИСПРАВЛЕНО: правильное создание inline кнопок
+    from aiogram.types import InlineKeyboardButton
+    
+    buttons = []
+    
+    if webapp_url and webapp_url.startswith("https://"):
+        buttons.append([InlineKeyboardButton(text="🌐 Mini App", web_app=WebAppInfo(url=webapp_url))])
+
+    buttons.extend([
         [InlineKeyboardButton(text="📢 Канал", url=channel_url),
          InlineKeyboardButton(text="👨‍💻 Команда", url=team_url)],
         [InlineKeyboardButton(text="📜 Правила", url=rules_url)],
-    ]
-
-    if webapp_url and webapp_url.startswith("https://"):
-        buttons.insert(0, [InlineKeyboardButton(text="🌐 Mini App", web_app=WebAppInfo(url=webapp_url))])
+    ])
 
     await message.answer("👥 Комьюнити", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
-
+    
 
 @router.message(F.text.in_({"🤝 Работать с нами", "Работать с нами"}))
 async def work_with_us(message: Message, config, db):
