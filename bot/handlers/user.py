@@ -276,7 +276,11 @@ async def amount_entered(message: Message, state: FSMContext, db, bot, config, l
 
     await message.delete()
 
-    payment_code = gen_payment_code()
+    # Генерируем код платежа
+    import random
+    import string
+    payment_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    
     requisites = bank.get("requisites_text", "").strip()
     has_requisites = requisites and len(requisites) > 5 and "не заданы" not in requisites
 
@@ -317,7 +321,8 @@ async def amount_entered(message: Message, state: FSMContext, db, bot, config, l
                         chat_id=chat_id, message_id=main_msg_id,
                         text=text, reply_markup=i_paid_kb(app_id)
                     )
-            except Exception:
+            except Exception as e:
+                logger.error(f"Error sending auto-requisites: {e}")
                 await message.answer(text, reply_markup=i_paid_kb(app_id))
         else:
             if req_photo:
@@ -330,43 +335,36 @@ async def amount_entered(message: Message, state: FSMContext, db, bot, config, l
         # МЕРЧАНТАМ
         app_id = await db.create_application(message.from_user.id, bank_id, amount, payment_code)
 
-        # Получаем ID чата мерчантов (с приоритетом настройки из БД)
+        # Отправляем в чат мерчантов
         merchant_chat_id = await db.get_setting("merchant_chat_id")
         if not merchant_chat_id and config.merchant_chat_id:
             merchant_chat_id = config.merchant_chat_id
 
         if merchant_chat_id:
             try:
-                # Конвертируем в int если это число
-                if isinstance(merchant_chat_id, str) and merchant_chat_id.lstrip("-").isdigit():
+                # Конвертируем в int если нужно
+                if isinstance(merchant_chat_id, str):
                     merchant_chat_id = int(merchant_chat_id)
-                elif isinstance(merchant_chat_id, int):
-                    pass
-                else:
-                    logger.error(f"Invalid merchant_chat_id format: {merchant_chat_id}")
-                    merchant_chat_id = None
-            except Exception as e:
-                logger.error(f"Error converting merchant_chat_id: {e}")
-                merchant_chat_id = None
 
-        if merchant_chat_id:
-            from bot.keyboards import merchant_take_kb
-            merch_text = (
-                f"🆕 Новая заявка\n"
-                f"ID: #{app_id}\n"
-                f"Банк: 🏦 {bank['bank_name']}\n"
-                f"Сумма: {amount:.2f} грн\n"
-                f"Код: {payment_code}\n"
-                f"От: @{message.from_user.username} (id {message.from_user.id})\n\n"
-                f"Нажмите «Взять заявку», затем выдайте реквизиты."
-            )
-            try:
+                from bot.keyboards import merchant_take_kb
+                
+                merch_text = (
+                    f"🆕 Новая заявка\n"
+                    f"ID: #{app_id}\n"
+                    f"Банк: 🏦 {bank['bank_name']}\n"
+                    f"Сумма: {amount:.2f} грн\n"
+                    f"Код: {payment_code}\n"
+                    f"От: @{message.from_user.username} (id {message.from_user.id})\n\n"
+                    f"Нажмите «Взять заявку», затем выдайте реквизиты."
+                )
+                
                 await bot.send_message(
                     merchant_chat_id,
                     merch_text,
                     reply_markup=merchant_take_kb(app_id)
                 )
                 logger.info(f"Sent app #{app_id} to merchant chat {merchant_chat_id}")
+                
             except Exception as e:
                 logger.error(f"Failed to send to merchant chat: {e}")
                 await message.answer("⚠️ Заявка создана, но не удалось отправить мерчантам. Обратитесь в поддержку.")
@@ -374,7 +372,7 @@ async def amount_entered(message: Message, state: FSMContext, db, bot, config, l
             logger.warning("merchant_chat_id not configured")
             await message.answer("⚠️ Заявка создана, но чат мерчантов не настроен. Обратитесь в поддержку.")
 
-        # Фото ожидания
+        # Показываем пользователю ожидание
         wait_photo = await db.get_setting("photo_waiting")
         text = f"⏳ Заявка #{app_id} отправлена оператору..."
 
@@ -388,7 +386,8 @@ async def amount_entered(message: Message, state: FSMContext, db, bot, config, l
                         chat_id=chat_id, message_id=main_msg_id,
                         text=text, reply_markup=None
                     )
-            except Exception:
+            except Exception as e:
+                logger.error(f"Error showing waiting: {e}")
                 await message.answer(text)
         else:
             if wait_photo:
@@ -397,7 +396,6 @@ async def amount_entered(message: Message, state: FSMContext, db, bot, config, l
                 await message.answer(text)
 
     await state.clear()
-
 
 @router.message(F.text == "/chatid")
 async def chatid(message: Message):
