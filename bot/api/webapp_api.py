@@ -94,10 +94,13 @@ def validate_telegram_init_data(init_data: str) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail="BOT_TOKEN not configured")
     
     if not init_data or init_data == 'test_mode':
-        # Тестовый режим для разработки
         return {"id": 123456, "username": "test_user"}
 
     try:
+        # ИСПРАВЛЕНО: Декодируем URL-encoded строку
+        from urllib.parse import unquote
+        init_data = unquote(init_data)
+        
         params = {}
         for pair in init_data.split("&"):
             if "=" in pair:
@@ -110,6 +113,8 @@ def validate_telegram_init_data(init_data: str) -> dict[str, Any]:
         calculated_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
 
         if calculated_hash != received_hash:
+            # Для тестирования можно временно отключить проверку:
+            # return {"id": 7978852869, "username": "TEDDY_lab"}
             raise HTTPException(status_code=401, detail="Invalid init data signature")
 
         import time
@@ -122,10 +127,7 @@ def validate_telegram_init_data(init_data: str) -> dict[str, Any]:
     except Exception as e:
         print(f"Auth error: {e}")
         raise HTTPException(status_code=401, detail=f"Auth failed: {str(e)}")
-
-async def get_current_user(x_init_data: str = Header(..., alias="X-Init-Data")) -> dict[str, Any]:
-    return validate_telegram_init_data(x_init_data)
-
+        
 # ============ WebApp Routes ============
 
 @app.get("/")
