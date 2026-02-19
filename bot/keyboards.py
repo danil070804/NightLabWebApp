@@ -8,9 +8,10 @@ async def main_menu(db=None) -> ReplyKeyboardMarkup:
 
     keyboard = []
 
-    # Добавляем кнопку WebApp первой (в верхнем ряду), только если есть валидный URL
+    # Добавляем кнопку WebApp только если есть ВАЛИДНЫЙ HTTPS URL
     if db:
         webapp_url = await db.get_setting("webapp_url", "")
+        # Telegram WebApp требует HTTPS обязательно
         if webapp_url and webapp_url.startswith("https://"):
             keyboard.append([KeyboardButton(text="🚀 Открыть WebApp Lab", web_app=WebAppInfo(url=webapp_url))])
 
@@ -18,14 +19,13 @@ async def main_menu(db=None) -> ReplyKeyboardMarkup:
     keyboard.extend([
         [KeyboardButton(text="💳 Получить реквизиты"), KeyboardButton(text="📄 Мои заявки")],
         [KeyboardButton(text="👥 Комьюнити"), KeyboardButton(text="🆘 Поддержка"),
-         KeyboardButton(text="🤝 Работать с нами")],
+         KeyboardKeyboardButton(text="🤝 Работать с нами")],
     ])
 
     return ReplyKeyboardMarkup(
         keyboard=keyboard,
         resize_keyboard=True,
     )
-
 
 def webapp_button(url: str) -> InlineKeyboardMarkup:
     b = InlineKeyboardBuilder()
