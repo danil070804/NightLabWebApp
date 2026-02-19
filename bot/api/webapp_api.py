@@ -62,23 +62,38 @@ if os.path.exists(webapp_path):
 
 @app.get("/")
 async def serve_webapp():
-    """Отдаем index.html"""
-    # Путь относительно файла webapp_api.py
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Поднимаемся из bot/api/ в корень
-    root_dir = os.path.dirname(os.path.dirname(current_dir))
-    webapp_index = os.path.join(root_dir, "webapp", "index.html")
-    
-    if os.path.exists(webapp_index):
-        return FileResponse(webapp_index)
-    else:
-        # Дебаг - покажем что есть в папке
-        return {
-            "status": "error",
-            "message": "index.html not found",
-            "looked_in": webapp_index,
-            "files_in_root": os.listdir(root_dir) if os.path.exists(root_dir) else "root not found"
-        }
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>NightLab</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+        <style>
+            body { background: #0a0a0f; color: white; font-family: Arial; padding: 20px; }
+            .btn { background: #a855f7; color: white; padding: 15px; border-radius: 10px; 
+                   text-align: center; margin: 10px 0; cursor: pointer; }
+        </style>
+    </head>
+    <body>
+        <h1>🌙 NightLab</h1>
+        <div class="btn" onclick="tg.openTelegramLink('https://t.me/NightLab_ROBOT')">Открыть бота</div>
+        <div id="data"></div>
+        <script>
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+            fetch('/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('data').innerHTML = 
+                        '<p>Всего заявок: ' + data.total_applications + '</p>';
+                });
+        </script>
+    </body>
+    </html>
+    """
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content=html_content)
     
 
 # ============ Модели Pydantic ============
