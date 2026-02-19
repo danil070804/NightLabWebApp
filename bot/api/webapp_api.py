@@ -12,7 +12,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Depends, Header, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 import sys
@@ -53,6 +54,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Раздаем статические файлы WebApp (если они рядом с ботом)
+# Предполагаем что папка webapp в корне проекта
+webapp_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "webapp")
+if os.path.exists(webapp_path):
+    app.mount("/static", StaticFiles(directory=webapp_path), name="static")
+
+@app.get("/")
+async def serve_webapp():
+    """Отдаем index.html на корневом пути"""
+    webapp_index = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "webapp", "index.html")
+    if os.path.exists(webapp_index):
+        return FileResponse(webapp_index)
+    return {"status": "ok", "service": "NightLab WebApp API", "message": "WebApp not configured. Use /api/ endpoints."}
+    
 
 # ============ Модели Pydantic ============
 
