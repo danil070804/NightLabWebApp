@@ -5,7 +5,7 @@
 
 // ===== Configuration =====
 const CONFIG = {
-    API_URL: 'https://nightlabwebapp-production.up.railway.app/',
+    API_URL: 'https://nightlabwebapp-production.up.railway.app',
     // API_URL: 'http://localhost:8000',
 };
 
