@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "uvicorn bot.api.webapp_api:app --host 0.0.0.0 --port ${PORT:-8000}"
+startCommand = "python run.py"
 healthcheckPath = "/api/stats"
 healthcheckPort = 8000
 restartPolicyType = "on_failure"
