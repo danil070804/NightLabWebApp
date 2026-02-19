@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "python run.py both"
+healthcheckPath = "/api/stats"
+healthcheckPort = 8000
+restartPolicyType = "on_failure"
